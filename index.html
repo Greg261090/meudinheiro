@@ -2,18 +2,543 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
-<title>Meu Dinheiro</title>
+<title>Meu Dinheiro - App Financeiro</title>
+
 <style>
-body { background:#000; color:#fff; font-family:Arial; }
+    body {
+        margin: 0;
+        font-family: Arial;
+        background: #0d1117;
+        color: #e6edf3;
+    }
+
+    header {
+        background: #161b22;
+        padding: 20px;
+        text-align: center;
+        color: #fff;
+        font-size: 22px;
+        font-weight: bold;
+        border-bottom: 1px solid #30363d;
+    }
+
+    nav {
+        display: flex;
+        justify-content: space-around;
+        background: #161b22;
+        border-bottom: 1px solid #30363d;
+        padding: 10px 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    nav button {
+        background: #21262d;
+        border: 1px solid #30363d;
+        padding: 10px 14px;
+        color: #e6edf3;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    nav button:hover {
+        background: #30363d;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .card {
+        background: #161b22;
+        padding: 15px;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        border-radius: 6px;
+        border: 1px solid #30363d;
+        background: #0d1117;
+        color: white;
+    }
+
+    button.primary {
+        background: #238636;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 10px;
+        width: 100%;
+        color: white;
+        font-weight: bold;
+    }
+
+    button.danger {
+        background: #da3633;
+        border: none;
+        padding: 8px;
+        border-radius: 6px;
+        margin-top: 10px;
+        width: 100%;
+        color: white;
+        font-weight: bold;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    h2 {
+        margin-top: 0;
+        color: #58a6ff;
+    }
+
+    /* Listas */
+    .list-item {
+        padding: 10px;
+        border-bottom: 1px solid #30363d;
+    }
+
+    .flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
-<h1>Meu Dinheiro - Template Instalável</h1>
-<p>PWA carregado com sucesso.</p>
+
+<header>
+    Meu Dinheiro - Controle Financeiro
+</header>
+
+<nav>
+    <button onclick="showPage('dashboard')">Dashboard</button>
+    <button onclick="showPage('transacoes')">Transações</button>
+    <button onclick="showPage('cartoes')">Cartões</button>
+    <button onclick="showPage('categorias')">Categorias</button>
+    <button onclick="showPage('google')">Google Sheets</button>
+</nav>
+
+<div class="container">
+
+<!-- =======================================
+     DASHBOARD
+========================================== -->
+<div id="dashboard" class="page">
+    <h2>Visão Geral</h2>
+
+    <canvas id="graficoGeral" height="200"></canvas>
+
+    <div class="card">
+        <h3>Resumo</h3>
+        <p>Total de Receitas: R$ <span id="totalReceitas">0</span></p>
+        <p>Total de Despesas: R$ <span id="totalDespesas">0</span></p>
+        <p><strong>Saldo Atual: R$ <span id="saldoAtual">0</span></strong></p>
+    </div>
+</div>
+<!-- =======================================
+     TRANSAÇÕES
+========================================== -->
+<div id="transacoes" class="page hidden">
+    <h2>Transações</h2>
+
+    <div class="card">
+        <h3>Adicionar Transação</h3>
+
+        <label>Descrição</label>
+        <input id="tDescricao" type="text">
+
+        <label>Valor</label>
+        <input id="tValor" type="number" step="0.01">
+
+        <label>Tipo</label>
+        <select id="tTipo">
+            <option value="receita">Receita</option>
+            <option value="despesa">Despesa</option>
+        </select>
+
+        <label>Categoria</label>
+        <select id="tCategoria"></select>
+
+        <label>Cartão (opcional)</label>
+        <select id="tCartao">
+            <option value="">Nenhum</option>
+        </select>
+
+        <label>Data</label>
+        <input id="tData" type="date">
+
+        <button class="primary" onclick="addTransacao()">Adicionar</button>
+    </div>
+
+    <div class="card">
+        <h3>Histórico</h3>
+        <div id="listaTransacoes"></div>
+    </div>
+</div>
+
+<!-- =======================================
+     CARTÕES
+============================================ -->
+<div id="cartoes" class="page hidden">
+    <h2>Cartões de Crédito</h2>
+
+    <div class="card">
+        <h3>Cadastrar Cartão</h3>
+
+        <label>Nome do cartão</label>
+        <input id="cNome" type="text">
+
+        <label>Bandeira</label>
+        <select id="cBandeira">
+            <option>Visa</option>
+            <option>Mastercard</option>
+            <option>Elo</option>
+            <option>American Express</option>
+            <option>Hipercard</option>
+        </select>
+
+        <label>Dia de fechamento</label>
+        <input id="cFechamento" type="number" min="1" max="31">
+
+        <label>Dia de vencimento</label>
+        <input id="cVencimento" type="number" min="1" max="31">
+
+        <button class="primary" onclick="addCartao()">Salvar Cartão</button>
+    </div>
+
+    <div class="card">
+        <h3>Meus Cartões</h3>
+        <div id="listaCartoes"></div>
+    </div>
+</div>
+
+<!-- =======================================
+     CATEGORIAS
+============================================ -->
+<div id="categorias" class="page hidden">
+    <h2>Categorias</h2>
+
+    <div class="card">
+        <h3>Adicionar Categoria</h3>
+        <input id="catNome" type="text">
+        <button class="primary" onclick="addCategoria()">Adicionar</button>
+    </div>
+
+    <div class="card">
+        <h3>Lista de Categorias</h3>
+        <div id="listaCategorias"></div>
+    </div>
+</div>
+
+<!-- =======================================
+     GOOGLE SHEETS
+============================================ -->
+<div id="google" class="page hidden">
+    <h2>Google Sheets</h2>
+
+    <div class="card">
+        <h3>Importar dados</h3>
+        <p>Cole a URL pública da sua planilha:</p>
+        <input id="sheetURL" type="text" placeholder="https://docs.google.com/...">
+        <button class="primary" onclick="importarSheets()">Importar</button>
+    </div>
+
+    <div class="card">
+        <h3>Exportar dados</h3>
+        <button class="primary" onclick="exportarTSV()">Baixar TSV</button>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+/* ============================================================
+   DADOS DO APP
+============================================================ */
+let categorias = JSON.parse(localStorage.getItem("categorias") || `[
+    "Alimentação","Transporte","Moradia","Saúde","Educação","Lazer","Outros"
+]`);
+
+let cartoes = JSON.parse(localStorage.getItem("cartoes") || "[]");
+let transacoes = JSON.parse(localStorage.getItem("transacoes") || "[]");
+
+/* ============================================================
+   SALVAR DADOS
+============================================================ */
+function salvar() {
+    localStorage.setItem("categorias", JSON.stringify(categorias));
+    localStorage.setItem("cartoes", JSON.stringify(cartoes));
+    localStorage.setItem("transacoes", JSON.stringify(transacoes));
+}
+
+/* ============================================================
+   NAVEGAÇÃO ENTRE TELAS
+============================================================ */
+function showPage(page) {
+    document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
+    document.getElementById(page).classList.remove("hidden");
+}
+
+/* ============================================================
+   CATEGORIAS
+============================================================ */
+function renderCategorias() {
+    document.getElementById("tCategoria").innerHTML =
+        categorias.map(c => `<option>${c}</option>`).join("");
+
+    document.getElementById("listaCategorias").innerHTML =
+        categorias.map((c, i) => `
+            <div class="list-item">
+                <span>${c}</span>
+                <button onclick="delCategoria(${i})">❌</button>
+            </div>
+        `).join("");
+}
+
+function addCategoria() {
+    let nome = document.getElementById("catNome").value.trim();
+    if (!nome) return alert("Digite o nome da categoria");
+    categorias.push(nome);
+    salvar();
+    renderCategorias();
+}
+
+function delCategoria(i) {
+    if (confirm("Excluir categoria?")) {
+        categorias.splice(i,1);
+        salvar();
+        renderCategorias();
+    }
+}
+
+/* ============================================================
+   CARTÕES
+============================================================ */
+function renderCartoes() {
+    document.getElementById("tCartao").innerHTML =
+        `<option value="">Nenhum</option>` +
+        cartoes.map(c => `<option value="${c.id}">${c.nome}</option>`).join("");
+
+    document.getElementById("listaCartoes").innerHTML =
+        cartoes.map(c => `
+            <div class="list-item">
+                <div>
+                    <strong>${c.nome}</strong><br>
+                    <small>${c.bandeira} | Fecha dia ${c.fechamento} | Vence dia ${c.vencimento}</small>
+                </div>
+                <button onclick="delCartao('${c.id}')">🗑</button>
+            </div>
+        `).join("");
+}
+
+function addCartao() {
+    let nome = cNome.value.trim();
+    if (!nome) return alert("Digite o nome do cartão");
+
+    cartoes.push({
+        id: Date.now(),
+        nome,
+        bandeira: cBandeira.value,
+        fechamento: parseInt(cFechamento.value),
+        vencimento: parseInt(cVencimento.value)
+    });
+
+    salvar();
+    renderCartoes();
+}
+
+function delCartao(id) {
+    if (confirm("Excluir cartão?")) {
+        cartoes = cartoes.filter(c => c.id != id);
+        salvar();
+        renderCartoes();
+    }
+}
+
+/* ============================================================
+   FATURA AUTOMÁTICA
+============================================================ */
+function faturaVigente(cartao) {
+    const hoje = new Date();
+    const dia = hoje.getDate();
+    const mes = hoje.getMonth();
+    const ano = hoje.getFullYear();
+
+    let inicio, fim;
+
+    if (dia > cartao.fechamento) {
+        inicio = new Date(ano, mes, cartao.fechamento + 1);
+        fim = new Date(ano, mes + 1, cartao.fechamento);
+    } else {
+        inicio = new Date(ano, mes - 1, cartao.fechamento + 1);
+        fim = new Date(ano, mes, cartao.fechamento);
+    }
+
+    return {
+        inicio: inicio.toISOString().split("T")[0],
+        fim: fim.toISOString().split("T")[0]
+    };
+}
+
+/* ============================================================
+   TRANSAÇÕES
+============================================================ */
+function renderTransacoes() {
+    listaTransacoes.innerHTML = transacoes.map(t => `
+        <div class="list-item">
+            <div>
+                <strong>${t.descricao}</strong><br>
+                <small>${t.tipo} • ${t.categoria} • ${t.data}</small><br>
+                ${t.cartao ? `<small>Cartão: ${getCartaoNome(t.cartao)}</small>` : ""}
+            </div>
+            <strong>${t.tipo === "despesa" ? "-" : "+"} R$ ${t.valor}</strong>
+        </div>
+    `).join("");
+}
+
+function getCartaoNome(id) {
+    let c = cartoes.find(x => x.id == id);
+    return c ? c.nome : "";
+}
+
+function addTransacao() {
+    let descricao = tDescricao.value.trim();
+    let valor = tValor.value;
+    let categoria = tCategoria.value;
+    let tipo = tTipo.value;
+    let data = tData.value;
+    let cartao = tCartao.value || null;
+
+    if (!descricao || !valor || !data) return alert("Preencha todos os campos");
+
+    transacoes.push({
+        id: Date.now(),
+        descricao,
+        valor: parseFloat(valor).toFixed(2),
+        categoria,
+        tipo,
+        data,
+        cartao
+    });
+
+    salvar();
+    renderTransacoes();
+    renderResumo();
+}
+
+/* ============================================================
+   RESUMO + GRÁFICO
+============================================================ */
+function renderResumo() {
+    let despesas = {};
+    let receitasTotal = 0;
+    let despesasTotal = 0;
+
+    transacoes.forEach(t => {
+        if (t.tipo === "despesa") {
+            despesas[t.categoria] = (despesas[t.categoria] || 0) + parseFloat(t.valor);
+            despesasTotal += parseFloat(t.valor);
+        } else {
+            receitasTotal += parseFloat(t.valor);
+        }
+    });
+
+    let ctx = document.getElementById("pizza").getContext("2d");
+
+    if (window.pizzaChart) window.pizzaChart.destroy();
+
+    window.pizzaChart = new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: Object.keys(despesas),
+            datasets: [{
+                data: Object.values(despesas)
+            }]
+        }
+    });
+}
+
+/* ============================================================
+   GOOGLE SHEETS (IMPORTAÇÃO)
+============================================================ */
+async function importarSheets() {
+    let url = sheetURL.value;
+
+    if (!url.includes("spreadsheets")) return alert("URL inválida");
+
+    try {
+        let res = await fetch(url.replace("/edit","") + "/gviz/tq?tqx=out:json");
+        let text = await res.text();
+        let json = JSON.parse(text.substring(47).slice(0, -2));
+
+        transacoes = json.table.rows.map(r => ({
+            id: r.c[0]?.v || Date.now(),
+            tipo: r.c[1]?.v,
+            categoria: r.c[2]?.v,
+            valor: r.c[3]?.v,
+            data: r.c[4]?.v,
+            descricao: r.c[5]?.v,
+            cartao: null
+        }));
+
+        salvar();
+        renderTransacoes();
+        renderResumo();
+
+        alert("Importado com sucesso!");
+    } catch (e) {
+        alert("Erro ao importar.");
+    }
+}
+
+/* ============================================================
+   EXPORTAR TSV
+============================================================ */
+function exportarTSV() {
+    let texto = transacoes.map(t =>
+        `${t.id}\t${t.tipo}\t${t.categoria}\t${t.valor}\t${t.data}\t${t.descricao}`
+    ).join("\n");
+
+    let blob = new Blob([texto], { type: "text/plain" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "transacoes.tsv";
+    a.click();
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
+renderCategorias();
+renderCartoes();
+renderTransacoes();
+setTimeout(renderResumo, 300);
 </script>
+
+<!-- GRÁFICO -->
+<canvas id="pizza" width="300" height="300"></canvas>
+
+<!-- REGISTRO DO PWA -->
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
 </body>
 </html>
