@@ -1,12 +1,14 @@
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open('meu-dinheiro-v1').then(cache => {
+      // Adicionar o CDN do Chart.js para o modo offline
       return cache.addAll([
         '/',
         '/index.html',
         '/manifest.json',
         '/icons/icon-256.png',
-        '/icons/icon-512.png'
+        '/icons/icon-512.png',
+        'https://cdn.jsdelivr.net/npm/chart.js' // Cacheia a biblioteca do gráfico
       ]);
     }).then(() => self.skipWaiting())
   );
