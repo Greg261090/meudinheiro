@@ -1,9 +1,10 @@
 {
-  "name": "Meu Dinheiro",
+  "name": "Meu Dinheiro - Controle Pessoal",
   "short_name": "MeuDinheiro",
+  "description": "Seu controle financeiro pessoal, inspirado no Mobilis.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#0d1117",
   "theme_color": "#2563eb",
   "icons": [
     {
@@ -15,6 +16,22 @@
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova Despesa",
+      "short_name": "Despesa",
+      "description": "Adicionar um novo gasto",
+      "url": "/index.html#transacoes",
+      "icons": [{ "src": "icons/icon-256.png", "sizes": "256x256" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Resumo",
+      "description": "Ver a visão geral e gráficos",
+      "url": "/index.html#dashboard",
+      "icons": [{ "src": "icons/icon-256.png", "sizes": "256x256" }]
     }
   ]
 }
